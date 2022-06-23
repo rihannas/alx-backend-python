@@ -11,8 +11,8 @@ from typing import Union, Tuple
 
 
 def to_kv(k: str, v: Union[int, float]) -> Tuple[str, float]:
-    """ 
-    a function that takes int or floar or string, then 
+    """
+    a function that takes int or floar or string, then
     returns a tuple
     """
     return (k, v * v)
