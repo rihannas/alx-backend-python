@@ -9,4 +9,8 @@ from typing import List
 
 
 def sum_list(input_list: List[float]) -> float:
+    """
+    adds the elements of a list
+    return type: float
+    """
     return sum(input_list)
