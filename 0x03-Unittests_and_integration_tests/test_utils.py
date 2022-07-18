@@ -3,7 +3,7 @@
 
 import unittest
 from unittest.mock import Mock, patch
-from utils import access_nested_map, get_json
+from utils import access_nested_map, get_json, memoize
 
 from parameterized import parameterized
 
@@ -58,6 +58,32 @@ class TestGetJson(unittest.TestCase):
             self.assertEqual(real_response, test_payload)
             # check that mocked method called once per input
             mock_response.json.assert_called_once()
+
+
+class TestMemoize(unittest.TestCase):
+    """Test for memoize function"""
+
+    def test_memoise(self):
+        """
+        Test that when calling a_property twice,
+        the correct result is returned but a_method is only called
+        once using assert_called_once.
+        """
+
+        class TestClass:
+
+            def a_method(self):
+                return 42
+
+            @memoize
+            def a_property(self):
+                return self.a_method()
+
+        with patch.object(TestClass, 'a_method', return_value=42) as mocked:
+            spec = TestClass()
+            spec.a_property
+            spec.a_property
+            mocked.asset_called_once()
 
 
 if __name__ == '__main__':
