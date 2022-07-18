@@ -2,7 +2,7 @@
 """Unit tests for client.py"""
 
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, PropertyMock
 from parameterized import parameterized
 from client import GithubOrgClient
 
@@ -23,3 +23,14 @@ class TestGithubOrgClient(unittest.TestCase):
         test_class.org()
         mock_json.assert_called_once_with(
             'https://api.github.com/orgs/{}'.format(org_name))
+
+    @parameterized.expand([
+        ("random-url", {'repos_url': 'http://some_url.com'})
+    ])
+    def test_public_repos_url(self, name, result):
+        """tests memoize property """
+
+        with patch('client.GithubOrgClient.org',
+                   PropertyMock(return_value=result)):
+            response = GithubOrgClient(name)._public_repos_url
+            self.assertEqual(response, result.get('repos_url'))
