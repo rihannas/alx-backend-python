@@ -34,3 +34,27 @@ class TestGithubOrgClient(unittest.TestCase):
                    PropertyMock(return_value=result)):
             response = GithubOrgClient(name)._public_repos_url
             self.assertEqual(response, result.get('repos_url'))
+
+    @patch('client.get_json')
+    def test_public_repos(self, mk_jsn):
+        """
+        test_public_repos - function to test public repos
+        Arguments:
+            mk_json - the given moke object for get json
+        Returns:
+            ok if it succeded fail otherwise
+        """
+        test = [{'name': 'Facebook', 'name': 'LinkedIn'}]
+        mk_jsn.return_value = test
+
+        with patch('client.GithubOrgClient._public_repos_url',
+                   new_callable=PropertyMock) as mk_repo:
+            mk_repo.return_value = 'test/test123'
+            tst_cls = GithubOrgClient('test')
+            rslt = tst_cls.public_repos()
+
+            jsn_rslt = [i['name'] for i in test]
+            self.assertEqual(jsn_rslt, rslt)
+
+            mk_jsn.assert_called_once()
+            mk_repo.assert_called_once()
