@@ -58,3 +58,19 @@ class TestGithubOrgClient(unittest.TestCase):
 
             mk_jsn.assert_called_once()
             mk_repo.assert_called_once()
+
+    @parameterized.expand([
+        ({"license": {"key": "my_license"}}, "my_license", True),
+        ({"license": {"key": "other_license"}}, "my_license", False)
+    ])
+    def test_has_license(self, repo, license_key, rslt):
+        """
+        test_has_license - method to test the has_license method of client cls
+        Arguments:
+            repo: the given repository
+            license_key: the license key
+        Returns:
+            ok if it succeded fail otherwise
+        """
+        tst_cls = GithubOrgClient.has_license(repo, license_key)
+        self.assertEqual(tst_cls, rslt)
