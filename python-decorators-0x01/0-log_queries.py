@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+'''create a decorator that logs database queries executed by any function'''
+
 import sqlite3
 import functools
 
