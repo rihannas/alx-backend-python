@@ -3,11 +3,14 @@
 
 import sqlite3
 import functools
+from datetime import datetime
 
 def log_queries(func):
     def wrapper(*args, **kwargs):
-        print('Query Logs:')
-        print(f"{args}, {kwargs}")
+        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        query = kwargs.get('query') or (args[0] if args else None)
+        print(f"[{now}] Executing SQL query: {query}")
+        
         return func(*args, **kwargs)
     return wrapper
 
