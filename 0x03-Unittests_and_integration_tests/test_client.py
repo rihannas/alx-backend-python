@@ -32,7 +32,7 @@ class TestGithubOrgClient(unittest.TestCase):
     @parameterized.expand([
         ("random-url", {'repos_url': 'http://some_url.com'})
     ])
-    def test_public_repos_url(self, name, result):
+    def test_public_repos_url(self, org_name, org_payload):
         """
         test_public_repos_url - functin to test the public repos url
         Arguments:
@@ -41,10 +41,14 @@ class TestGithubOrgClient(unittest.TestCase):
             ok if it succeded fail otherwise
         """
 
-        with patch('client.GithubOrgClient.org',
-                   PropertyMock(return_value=result)):
-            response = GithubOrgClient(name)._public_repos_url
-            self.assertEqual(response, result.get('repos_url'))
+        with patch.object(GithubOrgClient, 'org', new_callable=PropertyMock) as mock_org:
+            mock_org.return_value = org_payload
+
+            client = GithubOrgClient(org_name)
+            result = client._public_repos_url
+
+            self.assertEqual(result, org_payload['repos_url'])
+            mock_org.assert_called_once()
 
     @patch('client.get_json')
     def test_public_repos(self, mk_jsn):
