@@ -63,7 +63,7 @@ class TestGetJson(unittest.TestCase):
 class TestMemoize(unittest.TestCase):
     """Test for memoize function"""
 
-    def test_memoise(self):
+    def test_memoize(self):
         """
         Test that when calling a_property twice,
         the correct result is returned but a_method is only called
@@ -79,11 +79,19 @@ class TestMemoize(unittest.TestCase):
             def a_property(self):
                 return self.a_method()
 
-        with patch.object(TestClass, 'a_method') as mocked:
+        with patch.object(TestClass, 'a_method', return_value=42) as mocked:
             test = TestClass()
-            test.a_property
-            test.a_property
-            mocked.asset_called_once()
+
+            # CALL THE MEMOIZED PROPERTY TWICE
+            result1 = test.a_property
+            result2 = test.a_property
+
+            # CHECK THE CORRECT VALUE IS RETURNED BOTH TIMES
+            self.assertEqual(result1, 42)
+            self.assertEqual(result2, 42)
+
+            # ENSURE a_method WAS ONLY CALLED ONCE
+            mocked.assert_called_once()
 
 
 if __name__ == '__main__':
