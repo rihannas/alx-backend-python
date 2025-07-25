@@ -7,13 +7,11 @@ from .serializers import ConversationSerializer, MessageSerializer
 from .permissions import IsParticipant
 
 
-
 class ConversationViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated, IsParticipant]
+    permission_classes = [permissions.IsAuthenticated, IsParticipant]  
 
     queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer
-    permission_classes = [permissions.IsAuthenticated]
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ['conversation_id']
     ordering = ['-conversation_id']
@@ -30,7 +28,6 @@ class ConversationViewSet(viewsets.ModelViewSet):
         serializer.save()
         serializer.instance.participants.set(participants)
 
-
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -39,15 +36,13 @@ class ConversationViewSet(viewsets.ModelViewSet):
 
 
 class MessageViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated, IsParticipant]
+    permission_classes = [permissions.IsAuthenticated, IsParticipant]  
 
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
-    permission_classes = [permissions.IsAuthenticated]
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ['sent_at']
     ordering = ['-sent_at']
-
 
     def get_queryset(self):
         return self.queryset.filter(conversation__participants__in=[self.request.user])
