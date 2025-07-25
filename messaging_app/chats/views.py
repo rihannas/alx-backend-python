@@ -2,11 +2,14 @@ from rest_framework import viewsets, permissions, status, filters
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework.status import HTTP_403_FORBIDDEN
+from django_filters.rest_framework import DjangoFilterBackend
+
 
 
 from .models import Conversation, Message, User
 from .serializers import ConversationSerializer, MessageSerializer
 from .permissions import IsParticipant
+from .filters import MessageFilter
 
 
 class ConversationViewSet(viewsets.ModelViewSet):
@@ -45,6 +48,9 @@ class MessageViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ['sent_at']
     ordering = ['-sent_at']
+
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = MessageFilter
 
     def get_queryset(self):
         return Message.queryset.filter(conversation__participants__in=[self.request.user])
