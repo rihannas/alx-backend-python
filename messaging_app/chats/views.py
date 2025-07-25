@@ -1,6 +1,8 @@
 from rest_framework import viewsets, permissions, status, filters
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
+from rest_framework.status import HTTP_403_FORBIDDEN
+
 
 from .models import Conversation, Message, User
 from .serializers import ConversationSerializer, MessageSerializer
@@ -17,7 +19,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
     ordering = ['-conversation_id']
 
     def get_queryset(self):
-        return self.queryset.filter(participants__in=[self.request.user])
+        return Conversation.queryset.filter(participants__in=[self.request.user])
 
     def perform_create(self, serializer):
         participant_ids = self.request.data.get('participants', [])
@@ -45,12 +47,15 @@ class MessageViewSet(viewsets.ModelViewSet):
     ordering = ['-sent_at']
 
     def get_queryset(self):
-        return self.queryset.filter(conversation__participants__in=[self.request.user])
+        return Message.queryset.filter(conversation__participants__in=[self.request.user])
 
     def perform_create(self, serializer):
         conversation = serializer.validated_data['conversation']
         if self.request.user not in conversation.participants.all():
-            raise ValidationError("You are not a participant in this conversation.")
+            return Response(
+                {"detail": "You are not a participant in this conversation."},
+                status=HTTP_403_FORBIDDEN
+            )   
         serializer.save(sender=self.request.user)
 
     def create(self, request, *args, **kwargs):
