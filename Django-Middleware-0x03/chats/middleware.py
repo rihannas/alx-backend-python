@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, time
 from django.http import HttpResponseForbidden
 from django.http import JsonResponse
 
@@ -26,8 +26,8 @@ class RestrictAccessByTimeMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
         # Define allowed access hours (from 6:00 to 21:00)
-        self.start_time = datetime.time(6, 0)   # 6:00 AM
-        self.end_time = datetime.time(21, 0)    # 9:00 PM
+        self.start_time = time(6, 0)   # 6:00 AM
+        self.end_time = time(21, 0)    # 9:00 PM
 
     def __call__(self, request):
         now = datetime.now().time()
@@ -42,7 +42,8 @@ class RestrictAccessByTimeMiddleware:
         return response
 
 
-import time
+import time as time_module
+
 class OffensiveLanguageMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
@@ -55,7 +56,7 @@ class OffensiveLanguageMiddleware:
         # Only count POST requests to the messaging endpoint
         if request.method == "POST" and request.path.startswith('/api/messages/'):
             ip = self.get_client_ip(request)
-            now = time.time()
+            now = time_module.time()
             times = self.ip_message_times.get(ip, [])
 
             # Remove timestamps older than window
