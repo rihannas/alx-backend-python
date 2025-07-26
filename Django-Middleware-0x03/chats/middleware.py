@@ -1,6 +1,7 @@
 import logging
-from datetime import datetime, time
+from datetime import datetime
 from django.http import HttpResponseForbidden
+from django.http import JsonResponse
 
 
 logger = logging.getLogger(__name__)
@@ -26,8 +27,8 @@ class RestrictAccessByTimeMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
         # Define allowed access hours (from 6:00 to 21:00)
-        self.start_time = time(6, 0)   # 6:00 AM
-        self.end_time = time(21, 0)    # 9:00 PM
+        self.start_time = datetime.time(6, 0)   # 6:00 AM
+        self.end_time = datetime.time(21, 0)    # 9:00 PM
 
     def __call__(self, request):
         now = datetime.now().time()
@@ -40,3 +41,45 @@ class RestrictAccessByTimeMiddleware:
         # Otherwise allow request
         response = self.get_response(request)
         return response
+
+
+import time
+class OffensiveLanguageMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+        # Store IP access info as {ip: [(timestamp1), (timestamp2), ...]}
+        self.ip_message_times = {}
+        self.limit = 5  # max messages
+        self.window_seconds = 60  # 1 minute window
+
+    def __call__(self, request):
+        # Only count POST requests to the messaging endpoint
+        if request.method == "POST" and request.path.startswith('/api/messages/'):
+            ip = self.get_client_ip(request)
+            now = time.time()
+            times = self.ip_message_times.get(ip, [])
+
+            # Remove timestamps older than window
+            times = [t for t in times if now - t < self.window_seconds]
+
+            if len(times) >= self.limit:
+                return JsonResponse(
+                    {"detail": "Rate limit exceeded: Max 5 messages per minute."},
+                    status=429
+                )
+
+            # Add current timestamp and update dict
+            times.append(now)
+            self.ip_message_times[ip] = times
+
+        response = self.get_response(request)
+        return response
+
+    def get_client_ip(self, request):
+        # Handle common proxy headers to get real IP
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0].strip()
+        else:
+            ip = request.META.get('REMOTE_ADDR', '')
+        return ip
