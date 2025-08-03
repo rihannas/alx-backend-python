@@ -2,7 +2,7 @@
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.db.models import Prefetch
 
 from .models import Message
@@ -15,13 +15,15 @@ def delete_user(request):
     print('User deleted')
     return redirect('goodbye')  # Replace with your homepage or goodbye page
 
-def get_conversation(user):
-    messages = Message.objects.filter(receiver=user, parent_message__isnull=True) \
-        .select_related('sender', 'receiver') \
-        .prefetch_related(
-            Prefetch('replies', queryset=Message.objects.select_related('sender', 'receiver'))
-        )
-    return messages
+def user_sent_messages(request):
+    messages = Message.objects.filter(sender=request.user) \
+        .select_related('receiver', 'parent_message') \
+        .prefetch_related('replies')
+
+    context = {
+        'messages': messages
+    }
+    return render(request, 'messaging/sent_messages.html', context)
 
 def get_all_replies(message):
     replies = []
