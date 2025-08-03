@@ -3,6 +3,9 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 from django.shortcuts import redirect
+from django.db.models import Prefetch
+
+from .models import Message
 
 @login_required
 def delete_user(request):
@@ -11,3 +14,28 @@ def delete_user(request):
     user.delete()
     print('User deleted')
     return redirect('goodbye')  # Replace with your homepage or goodbye page
+
+def get_conversation(user):
+    messages = Message.objects.filter(receiver=user, parent_message__isnull=True) \
+        .select_related('sender', 'receiver') \
+        .prefetch_related(
+            Prefetch('replies', queryset=Message.objects.select_related('sender', 'receiver'))
+        )
+    return messages
+
+def get_all_replies(message):
+    replies = []
+
+    def _fetch_replies(msg):
+        children = msg.replies.all()
+        for child in children:
+            replies.append(child)
+            _fetch_replies(child)
+
+    _fetch_replies(message)
+    return replies
+
+def display_threaded_messages(messages, level=0):
+    for msg in messages:
+        print(" " * (level * 4) + f"{msg.sender}: {msg.content}")
+        display_threaded_messages(msg.replies.all(), level + 1)
