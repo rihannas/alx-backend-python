@@ -42,6 +42,9 @@ def display_threaded_messages(messages, level=0):
         print(" " * (level * 4) + f"{msg.sender}: {msg.content}")
         display_threaded_messages(msg.replies.all(), level + 1)
 
+@login_required
 def unread_inbox(request):
-    unread_messages = Message.unread.for_user(request.user)
-    return render(request, 'messaging/unread_inbox.html', {'messages': unread_messages})
+    unread_messages = Message.unread.unread_for_user(request.user).only(
+        "id", "sender", "content", "timestamp"
+    )
+    return render(request, "messaging/unread_inbox.html", {"messages": unread_messages})
