@@ -4,6 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 from django.shortcuts import redirect, render
 from django.db.models import Prefetch
+from django.views.decorators.cache import cache_page
+
 
 from .models import Message
 
@@ -48,3 +50,8 @@ def unread_inbox(request):
         "id", "sender", "content", "timestamp"
     )
     return render(request, "messaging/unread_inbox.html", {"messages": unread_messages})
+
+@cache_page(60)  
+def conversation_detail(request, conversation_id):
+    messages = Message.objects.filter(conversation_id=conversation_id).order_by("timestamp")
+    return render(request, "messaging/conversation_detail.html", {"messages": messages})
