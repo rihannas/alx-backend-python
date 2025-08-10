@@ -8,6 +8,7 @@ services:
     environment:
       MYSQL_USER: myuser
       MYSQL_PASSWORD: mypassword
+      MYSQL_DB: messaging_db
       MYSQL_DATABASE: messaging_db
       MYSQL_ROOT_PASSWORD: rootpassword
     ports:
@@ -20,8 +21,8 @@ services:
     container_name: messaging_web
     restart: always
     command: >
-      sh -c "python manage.py migrate &&
-             python manage.py runserver 0.0.0.0:8000"
+      sh -c "python3 manage.py migrate &&
+             python3 manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/app
     ports:
