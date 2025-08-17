@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# Script: kubctl-0x01
+# Purpose: Scale Django app deployment in Kubernetes, verify, load test, and monitor resources
+
+# 1. Scale the deployment to 3 replicas
+echo "Scaling 'django-app' deployment to 3 replicas..."
+kubectl scale deployment django-app --replicas=3
+if [ $? -eq 0 ]; then
+    echo "Scaling successful!"
+else
+    echo "Scaling failed. Check deployment name and kubectl config."
+    exit 1
+fi
+
+# 2. Wait a few seconds for pods to start
+echo "Waiting 10 seconds for pods to start..."
+sleep 10
+
+# 3. Verify multiple pods are running
+echo "Verifying pods..."
+kubectl get pods -l app=django-app
+
+# 4. Perform load testing using wrk
+# Assuming your Django app service is exposed via ClusterIP and accessible
+# Update URL if needed
+APP_URL="http://localhost:8000"  # change to your service NodePort or Ingress URL
+echo "Starting load test with wrk..."
+wrk -t2 -c10 -d10s $APP_URL
+
+# 5. Monitor resource usage
+echo "Monitoring resource usage of pods..."
+kubectl top pods -l app=django-app
