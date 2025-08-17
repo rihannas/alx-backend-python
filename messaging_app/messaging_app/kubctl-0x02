@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Script: kubctl-0x02
+# Purpose: Deploy blue-green versions of Django app and check logs
+
+echo "Deploying blue version..."
+kubectl apply -f blue_deployment.yaml
+
+echo "Deploying green version..."
+kubectl apply -f green_deployment.yaml
+
+echo "Deploying Service..."
+kubectl apply -f kubeservice.yaml
+
+# Wait for pods to start
+echo "Waiting 15 seconds for pods to become ready..."
+sleep 15
+
+echo "Checking logs for green deployment..."
+kubectl logs -l app=django,version=green --tail=20
+
+# Optional: switch traffic to green gradually
+echo "Switching Service traffic to green deployment..."
+kubectl patch service django-service -p '{"spec":{"selector":{"app":"django","version":"green"}}}'
+
+echo "Deployment complete. Verify pods:"
+kubectl get pods -l app=django
