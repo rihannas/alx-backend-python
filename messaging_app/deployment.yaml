@@ -1,0 +1,93 @@
+---
+# Django Messaging App Kubernetes Deployment
+# Repository: alx-backend-python
+# Directory: messaging_app
+# File: messaging_app/deployment.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django-messaging-app
+  labels:
+    app: django-messaging-app
+    tier: web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: django-messaging-app
+      tier: web
+  template:
+    metadata:
+      labels:
+        app: django-messaging-app
+        tier: web
+    spec:
+      containers:
+        - name: messaging-app
+          # Replace with your actual Django messaging app Docker image
+          # Examples:
+          # - your-dockerhub-username/django-messaging-app:latest
+          # - django-messaging-app:local (if built locally)
+          # - python:3.11-slim (temporary for testing)
+          image: django-messaging-app:latest
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 8000
+              name: django-port
+
+          env:
+            - name: DEBUG
+              value: 'False'
+            - name: ALLOWED_HOSTS
+              value: '*'
+            - name: DJANGO_SETTINGS_MODULE
+              value: 'messaging_app.settings'
+
+          # Health checks for Django app
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+
+          # Resource allocation
+          resources:
+            requests:
+              memory: '256Mi'
+              cpu: '250m'
+            limits:
+              memory: '512Mi'
+              cpu: '500m'
+
+---
+# ClusterIP Service to expose Django app internally
+apiVersion: v1
+kind: Service
+metadata:
+  name: django-messaging-service
+  labels:
+    app: django-messaging-app
+    tier: web
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 8000
+      protocol: TCP
+      name: http
+  selector:
+    app: django-messaging-app
+    tier: web
