@@ -2,6 +2,9 @@
 
 # kurbeScript - Local Kubernetes Setup and Management Script
 # This script sets up a local Kubernetes cluster using Minikube
+# Repository: alx-backend-python
+# Django Project: messaging_app
+# File: messaging_app/kurbeScript
 
 set -e  # Exit on any error
 
