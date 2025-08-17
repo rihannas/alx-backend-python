@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Script: kubctl-0x03
+# Purpose: Perform rolling update of Django app without downtime
+
+APP_URL="http://localhost:8000"   # Change if using NodePort/Ingress
+
+echo "Applying updated blue deployment (version 2.0)..."
+kubectl apply -f blue_deployment.yaml
+
+echo "Monitoring rollout status..."
+kubectl rollout status deployment/django-blue
+
+echo "Starting curl requests to test downtime during rollout..."
+for i in {1..30}
+do
+  RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" $APP_URL)
+  TIMESTAMP=$(date +"%T")
+  if [ "$RESPONSE" -eq 200 ]; then
+    echo "[$TIMESTAMP] Request $i OK ✅"
+  else
+    echo "[$TIMESTAMP] Request $i FAILED ❌ (Response: $RESPONSE)"
+  fi
+  sleep 1
+done
+
+echo "Verifying running pods..."
+kubectl get pods -l app=django,version=blue -o wide
