@@ -63,3 +63,33 @@ jobs:
       - name: Run tests
         run: |
           pytest messaging_app/tests --disable-warnings -q
+
+      - name: Run flake8 (Lint Check)
+        run: |
+          flake8 messaging_app --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 messaging_app --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
+        continue-on-error: false
+
+      - name: Wait for MySQL
+        run: |
+          sudo apt-get install -y mysql-client
+          until mysql -h 127.0.0.1 -P 3306 -udjango -pdjango -e "SELECT 1" test_db; do
+            echo "Waiting for MySQL..."
+            sleep 5
+          done
+
+      - name: Run migrations
+        run: |
+          python3 messaging_app/manage.py migrate --noinput
+
+      - name: Run tests with coverage
+        run: |
+          coverage run -m pytest messaging_app/tests --disable-warnings -q
+          coverage xml
+          coverage report
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
