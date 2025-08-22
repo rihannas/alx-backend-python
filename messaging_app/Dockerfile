@@ -19,4 +19,4 @@ COPY . /app/
 EXPOSE 8000
 
 # Default command to run the app
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["sh", "-c", "python3", "manage.py", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
